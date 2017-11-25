@@ -62,7 +62,7 @@ public class ArvoreBinaria<E> implements BinaryTreeTAD<E>{
 	private Nodo searchNodeRef(E element, Nodo target) {
 		Nodo res = null;
 		if(target!=null && element!=null) {
-			if(target.equals(element)) {
+			if(target.getElem().equals(element)) {
 				res = target;
 			}
 			else {
@@ -78,13 +78,67 @@ public class ArvoreBinaria<E> implements BinaryTreeTAD<E>{
 
 	@Override
 	public boolean add(E element, E father, NodePosition position) {
-		// TODO Auto-generated method stub
-		return false;
+		Nodo n = new Nodo(element);
+		Nodo aux = null;
+		boolean res = false;
+		if(father==null) {
+			if(position==NodePosition.LEFT) {
+				n.setFilhoe(refRoot);			
+			}
+			else {
+				n.setFilhod(refRoot);				
+			}
+			if(refRoot!=null) {
+				refRoot.setPai(n);
+			}
+			refRoot = n;
+			res = true;
+			this.totElem++;			
+		}
+		else {
+			aux = searchNodeRef(father,refRoot);
+			if(aux!=null) {
+				n.setPai(aux);
+				if(position==NodePosition.LEFT) {
+					n.setFilhoe(aux.getFilhoe());
+					if(aux.getFilhoe()!=null) {
+						aux.getFilhoe().setPai(n);
+					}
+					aux.setFilhoe(n);
+				}
+				else {
+					n.setFilhod(aux.getFilhod());
+					if(aux.getFilhod()!=null) {
+						aux.getFilhod().setPai(n);
+					}
+					aux.setFilhod(n);
+				}
+				res = true;
+				this.totElem++;
+			}
+			
+		}
+		return res;
+		
 	}
 
 	@Override
 	public boolean removeBranch(E element) {
-		// TODO Auto-generated method stub
+		Nodo aux = searchNodeRef(element);
+		if(aux!=null) {
+			List<E> removidos = new ArrayList<E>();		
+			traversalPos(aux,removidos);
+			int removidos_cont = removidos.size();
+			totElem = totElem - removidos_cont;
+			if(aux.equals(aux.getPai().getFilhoe())) {
+				aux.getPai().setFilhoe(null);
+			}
+			else {
+				aux.getPai().setFilhod(null);
+			}
+			
+			return true;
+		}
 		return false;
 	}
 
@@ -121,25 +175,42 @@ public class ArvoreBinaria<E> implements BinaryTreeTAD<E>{
 
 	@Override
 	public E getLeft(E element) {
-		// TODO Auto-generated method stub
+		Nodo aux = searchNodeRef(element);
+		if(aux!=null) {
+			if(aux.getFilhoe()!=null) {
+				return aux.getFilhoe().getElem();
+			}
+		}
 		return null;
 	}
 
 	@Override
 	public E getRight(E element) {
-		// TODO Auto-generated method stub
+		Nodo aux = searchNodeRef(element);
+		if(aux!=null) {
+			if(aux.getFilhod()!=null) {
+				return aux.getFilhod().getElem();
+			}
+		}
 		return null;
 	}
 
 	@Override
 	public E getFather(E element) {
-		// TODO Auto-generated method stub
+		Nodo aux = searchNodeRef(element);
+		if(aux!=null) {
+			if(aux.getPai()!=null) {
+				return aux.getPai().getElem();
+			}
+		}
 		return null;
+		
 	}
 
 	@Override
 	public boolean contains(E element) {
-		// TODO Auto-generated method stub
+		Nodo aux = searchNodeRef(element);
+		if(aux!=null) return true;
 		return false;
 	}
 
@@ -150,43 +221,80 @@ public class ArvoreBinaria<E> implements BinaryTreeTAD<E>{
 
 	@Override
 	public int count() {
-		// TODO Auto-generated method stub
-		return 0;
+		return traversalPos().size();
 	}
 
 	@Override
 	public int countLeaves() {
-		// TODO Auto-generated method stub
-		return 0;
+		List<E> res = new ArrayList<E>();
+		countLeaves(refRoot,res);
+		return res.size();
+	}
+	
+	private void countLeaves(Nodo n, List<E> res) {
+		if(n!=null) {
+			countLeaves(n.getFilhoe(),res);
+			countLeaves(n.getFilhod(),res);
+			if(n.getFilhoe()==null && n.getFilhod()==null) {
+				res.add(n.getElem());
+			}
+		}
+		
 	}
 
 	@Override
 	public int height() {
-		// TODO Auto-generated method stub
-		return 0;
+		if(isEmpty()) {
+			return 0;
+		}
+		return findHeight(refRoot);
+	}
+	
+	
+	private int findHeight(Nodo n) {
+		if(n==null) return -1;
+		return 1 + Math.max(findHeight(n.getFilhoe()),findHeight(n.getFilhod()));
 	}
 
 	@Override
 	public int level(E element) {
-		// TODO Auto-generated method stub
-		return 0;
+		Nodo aux = searchNodeRef(element);
+		if(aux!=null) {
+			int cont = 0;
+			while(aux.getPai()!=null) {
+				cont++;
+				aux = aux.getPai();
+			}
+			return cont+1;
+		}
+		return -1;
 	}
 
 	@Override
 	public boolean isEmpty() {
-		// TODO Auto-generated method stub
+		if(totElem==0) {
+			return true;
+		}
 		return false;
+			
 	}
 
 	@Override
 	public boolean isRoot(E element) {
-		// TODO Auto-generated method stub
+		if(refRoot.getElem().equals(element)) {
+			return true;
+		}
 		return false;
 	}
 
 	@Override
 	public boolean isLeave(E element) {
-		// TODO Auto-generated method stub
+		Nodo aux = searchNodeRef(element);
+		if(aux!=null) {
+			if(aux.getFilhoe()==null && aux.getFilhod()==null) {
+				return true;
+			}			
+		}
 		return false;
 	}
 
@@ -204,6 +312,12 @@ public class ArvoreBinaria<E> implements BinaryTreeTAD<E>{
 			traversalPre(n.getFilhod(),res);
 		}
 	}
+	
+	
+
+	
+	
+	
 
 	@Override
 	public List<E> traversalPos() {
